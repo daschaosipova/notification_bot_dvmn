@@ -23,7 +23,7 @@ TELEGRAM_TOKEN=токен_вашего_телеграм_бота
 TG_CHAT_ID=ваш_идентификатор_чата_в_telegram
 ```
 
-* **DVMN_TOKEN** — персональный токен, который можно получить в [личном кабинете Devman на странице API](https://dvmn.orgapi/docs/).
+* **DVMN_TOKEN** — персональный токен, который можно получить в [личном кабинете Devman на странице API](https://dvmn.org/api/docs/).
 * **TELEGRAM_TOKEN** — токен вашего бота, созданного через [@BotFather](https://t.me).
 * **TG_CHAT_ID** — ваш уникальный ID пользователя в Telegram. Узнать его можно, например, у бота [@userinfobot](https://t.me).
 
