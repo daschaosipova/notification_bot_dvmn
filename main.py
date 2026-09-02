@@ -1,9 +1,22 @@
 import os
 import time
+import logging
 import requests
 import telegram
 import argparse
 from dotenv import load_dotenv
+
+
+logger = logging.getLogger(__name__)
+
+
+def configure_logging():
+    """Настраивает базовую конфигурацию логирования для приложения."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
 
 def get_cli_arguments():
@@ -22,13 +35,15 @@ def get_cli_arguments():
 def main():
     load_dotenv(".env")
     
+    configure_logging()
+
     args = get_cli_arguments()
     
     dvmn_token = os.getenv("DVMN_TOKEN")
     tg_token = os.getenv("TELEGRAM_TOKEN")
    
     if not args.chat_id:
-        print("Ошибка: Не указан TG_CHAT_ID ни в .env, ни через аргументы командной строки!")
+        logger.error("Не указан TG_CHAT_ID ни в .env, ни через аргументы командной строки!")
         return
 
     bot = telegram.Bot(token=tg_token)
@@ -38,7 +53,7 @@ def main():
     
     params = {}
 
-    print("Бот успешно запущен и ожидает проверок...")
+    logger.info("Бот успешно запущен для Chat ID: %s и ожидает проверок...", args.chat_id)
 
     while True:
         try:
@@ -48,11 +63,11 @@ def main():
             review_data = response.json()
             
             if review_data["status"] == "timeout":
-                print("Новых проверок нет. Перезапускаем ожидание.")
+                logger.info("Новых проверок нет. Перезапускаем ожидание.")
                 params["timestamp"] = review_data["timestamp_to_request"]
                 
             elif review_data["status"] == "found":
-                print("Найдена новая проверка!")
+                logger.info("Найдена новая проверка!")
                 params["timestamp"] = review_data["last_attempt_timestamp"]
                 
                 for attempt in review_data["new_attempts"]:
@@ -73,21 +88,22 @@ def main():
                     
                     bot.send_message(chat_id=tg_chat_id, text=message)
 
-                    print(f"Проверена работа: «{lesson_title}»\nСсылка: {lesson_url}\nВердикт: {verdict}\n")
-                    print(review_data)
 
         except requests.exceptions.ReadTimeout:
-            print("Сервер Devman не ответил за 5 секунд. Ждем 10 секунд перед повторным запросом...")
+            logger.warning("Сервер Devman не ответил за 5 секунд. Ждем 10 секунд перед повторным запросом...")
             time.sleep(10)
+            
         except (requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
-            print("Проблемы с сетью или сервером. Повторная попытка через 10 секунд...")
+            logger.warning("Проблемы с сетью или сервером. Повторная попытка через 10 секунд...")
             time.sleep(10)
-        except Exception as e:
-            print(f"Произошла ошибка: {e}")
-            time.sleep(5)
+            
         except KeyboardInterrupt:
-            print("\nБот остановлен пользователем.")
+            logger.info("Бот остановлен пользователем.")
             break
+            
+        except Exception as err:
+            logger.error("Произошла непредвиденная ошибка: %s", err, exc_info=True)
+            time.sleep(5)
 
 
 if __name__ == "__main__":
