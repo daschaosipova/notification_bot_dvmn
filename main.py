@@ -88,7 +88,7 @@ def main():
     while True:
         try:
             response = requests.get(
-                url, headers=headers, params=params, timeout=5
+                url, headers=headers, params=params, timeout=95
             )
             response.raise_for_status()
 
@@ -112,7 +112,7 @@ def main():
 
         except requests.exceptions.ReadTimeout:
             logger.warning(
-                "Сервер Devman не ответил за 5 секунд. "
+                "Сервер Devman не ответил в течение 95 секунд. "
                 "Ждем 10 секунд перед повторным запросом..."
             )
             time.sleep(10)
