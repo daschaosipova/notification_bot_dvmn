@@ -3,7 +3,6 @@ import time
 import logging
 import requests
 import telegram
-import argparse
 from dotenv import load_dotenv
 
 
@@ -17,19 +16,6 @@ def configure_logging():
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
-
-
-def get_cli_arguments():
-    """Создает парсер и возвращает аргументы командной строки."""
-    parser = argparse.ArgumentParser(
-        description="Бот для уведомлений о провероках работ на Devman."
-    )
-    parser.add_argument(
-        "--chat_id",
-        default=os.getenv("TG_CHAT_ID"),
-        help="Telegram Chat ID пользователя для отправки уведомлений"
-    )
-    return parser.parse_args()
 
 
 def format_message(attempt):
@@ -61,16 +47,12 @@ def main():
 
     configure_logging()
 
-    args = get_cli_arguments()
-
     dvmn_token = os.getenv("DVMN_TOKEN")
     tg_token = os.getenv("TELEGRAM_TOKEN")
+    chat_id = os.getenv("TG_CHAT_ID")
 
-    if not args.chat_id:
-        logger.error(
-            "Не указан TG_CHAT_ID ни в .env, "
-            "ни через аргументы командной строки!"
-        )
+    if not chat_id:
+        logger.error("Не указан TG_CHAT_ID в .env!")
         return
 
     bot = telegram.Bot(token=tg_token)
@@ -82,7 +64,7 @@ def main():
 
     logger.info(
         "Бот успешно запущен для Chat ID: %s и ожидает проверок...",
-        args.chat_id
+        chat_id
     )
 
     while True:
@@ -107,7 +89,7 @@ def main():
                 for attempt in review_data["new_attempts"]:
                     message = format_message(attempt)
                     bot.send_message(
-                        chat_id=args.chat_id, text=message
+                        chat_id=chat_id, text=message
                     )
 
         except requests.exceptions.ReadTimeout:
