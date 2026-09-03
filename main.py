@@ -77,7 +77,6 @@ def main():
             review_data = response.json()
 
             if review_data["status"] == "timeout":
-                logger.info("Новых проверок нет. Перезапускаем ожидание.")
                 params["timestamp"] = review_data["timestamp_to_request"]
 
             elif review_data["status"] == "found":
@@ -93,11 +92,7 @@ def main():
                     )
 
         except requests.exceptions.ReadTimeout:
-            logger.warning(
-                "Сервер Devman не ответил в течение 95 секунд. "
-                "Ждем 10 секунд перед повторным запросом..."
-            )
-            time.sleep(10)
+            continue
 
         except (
             requests.exceptions.ConnectionError,
