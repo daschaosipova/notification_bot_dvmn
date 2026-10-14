@@ -42,9 +42,14 @@ class TelegramLogsHandler(logging.Handler):
 
     def emit(self, record):
         log_entry = self.format(record)
-        if record.name.startswith('telegram'):
+        if (record.name.startswith('telegram') or 
+            record.name.startswith('urllib3') or 
+            record.name.startswith('requests')):
             return
-        self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
+        try:
+            self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
+        except Exception:
+            pass
 
 def main():
     load_dotenv(".env") 
@@ -88,9 +93,9 @@ def main():
             continue
         except KeyboardInterrupt:
             break
-        except Exception as err:
-            logging.error("error occurred: %s", err, exc_info=True)
-            time.sleep(5)
+        except Exception:
+            logging.error("Бот упал с ошибкой:", exc_info=True)
+            time.sleep(10)
 
 if __name__ == "__main__":
     main()
