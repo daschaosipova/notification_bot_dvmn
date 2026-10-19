@@ -66,7 +66,7 @@ def main():
     logging.info("bot started")
     
     headers = {"Authorization": f"Token {dvmn_token}"}
-    url = "https://dvmn.org"
+    url = "https://dvmn.org/api/long_polling/"
     params = {}
 
     while True:
